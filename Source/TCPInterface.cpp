@@ -215,26 +215,30 @@ bool TCPInterface::Start(unsigned short port, unsigned short maxIncomingConnecti
 	listenSocket=0;
 	if (maxIncomingConnections>0)
 	{
+		bool isCreated = false;
 #if defined(WINDOWS_STORE_RT)
-		CreateListenSocket_WinStore8(port, maxIncomingConnections, socketFamily, bindAddress);
+		isCreated = CreateListenSocket_WinStore8(port, maxIncomingConnections, socketFamily, bindAddress);
 #else
-		CreateListenSocket(port, maxIncomingConnections, socketFamily, bindAddress);
+		isCreated = CreateListenSocket(port, maxIncomingConnections, socketFamily, bindAddress);
 #endif
+		if ( isCreated == false )
+		{
+			isStarted.Decrement();
+			return false;
+		}
 	}
 
 
 	// Start the update thread
 	int errorCode;
-
-
-
-
-
 	errorCode = RakNet::RakThread::Create(UpdateTCPInterfaceLoop, this, threadPriority);
 
 
 	if (errorCode!=0)
+	{
+		isStarted.Decrement();
 		return false;
+	}
 
 	while (threadRunning.GetValue()==0)
 		RakSleep(0);
@@ -1031,7 +1035,7 @@ RAK_THREAD_DECLARATION(RakNet::UpdateTCPInterfaceLoop)
 				sts->remoteClients[i].isActiveMutex.Lock();
 				if (sts->remoteClients[i].isActive)
 				{
-					// calling FD_ISSET with -1 as socket (that’s what 0 is set to) produces a bus error under Linux 64-Bit
+					// calling FD_ISSET with -1 as socket (thatÂ’s what 0 is set to) produces a bus error under Linux 64-Bit
 					__TCPSOCKET__ socketCopy = sts->remoteClients[i].socket;
 					if (socketCopy != 0)
 					{
@@ -1133,7 +1137,7 @@ RAK_THREAD_DECLARATION(RakNet::UpdateTCPInterfaceLoop)
 						i++;
 						continue;
 					}
-					// calling FD_ISSET with -1 as socket (that’s what 0 is set to) produces a bus error under Linux 64-Bit
+					// calling FD_ISSET with -1 as socket (thatÂ’s what 0 is set to) produces a bus error under Linux 64-Bit
 					__TCPSOCKET__ socketCopy = sts->remoteClients[i].socket;
 					if (socketCopy == 0)
 					{
