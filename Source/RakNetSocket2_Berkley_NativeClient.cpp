@@ -23,7 +23,7 @@
 // Shared on most platforms, but excluded from the listed
 
 
-void DomainNameToIP_Berkley_IPV4And6( const char *domainName, char ip[65] )
+void DomainNameToIP_Berkley_IPV4And6( const char *domainName, char (&ip)[65] )
 {
 #if RAKNET_SUPPORT_IPV6==1
 	struct addrinfo hints, *res, *p;
